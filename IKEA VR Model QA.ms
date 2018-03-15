@@ -22,6 +22,10 @@ ICON=#("FileLinkActionItems", 5)
 
 + Added: Show Maps in Viewport button =
 
+[1.0.2]
+
++ Added: Support nested ColorCorrection for Show Maps in Viewport=
+
 [ABOUT]
 
 This script helps to quickly check errors for selected models.=
@@ -136,6 +140,19 @@ rollout  _rQACheck ""
 		forceCompleteRedraw()
 	)
 	
+	fn getDiffuseColorCorrection d = 
+	(
+		o = d.map
+				
+		while o != undefined and hasProperty o "map" do (	
+			if(o.map == undefined) then exit
+			o = o.map				
+		)
+			
+		if(o == undefined) do return d
+		return o
+	)
+	
 	on btnShowMapsInVPT pressed do
 	(		
 		if(checkVray() == false) do return messageBox "Please assing V-Ray renderer!" title: "Warning"
@@ -143,7 +160,7 @@ rollout  _rQACheck ""
 		for m in getClassInstances VrayMtl where m != undefined and  m.texmap_diffuse != undefined do (
 								
 			tex = case classOf m.texmap_diffuse of (
-				Color_Correction: if(m.texmap_diffuse.map == undefined) then m.texmap_diffuse else m.texmap_diffuse.map
+				Color_Correction: getDiffuseColorCorrection m.texmap_diffuse
 				default: m.texmap_diffuse
 			)
 			
