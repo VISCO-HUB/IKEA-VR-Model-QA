@@ -2,7 +2,7 @@
 [INFO] 
 
 NAME = IKEA VR Model QA
-VERSION = 1.0.0
+VERSION = 1.0.1
 AUTHOR = MastaMan
 DEV = VISCO
 HELP = 
@@ -18,13 +18,18 @@ ICON=#("FileLinkActionItems", 5)
 
 * First release =
 
+[1.0.1]
+
++ Added: Show Maps in Viewport button =
+
 [ABOUT]
 
 This script helps to quickly check errors for selected models.=
 
-Supported:=
+Features:=
 - Smooth Groups=
 - Manifolds=
+- Display maps in viewport=
 - Statistic=
 
 
@@ -85,6 +90,12 @@ fn useSettings k p w =
 	)
 )
 
+fn checkVray =
+(
+	for r in RendererClass.classes where matchpattern (r as string) pattern:"*V_Ray_Adv*" do return true		
+	return false	
+)
+
 fn gw_DrawTriangleCnt =
 (
 	totalTris = 0
@@ -108,6 +119,11 @@ rollout  _rQACheck ""
 		button btnCheckSmoothGroups "Check Missing Smooth Groups" height: 30 width: 180 offset: [0, 10]
 	)
 	
+	group "Textures" 
+	(
+		button btnShowMapsInVPT "Show Maps in Viewport" height: 30 width: 180		
+	)
+	
 	group "Statistics" 
 	(
 		checkbox cbxToggleStatistics "  Toggle Statistics" width: 180 height: 30 checked: true
@@ -118,6 +134,21 @@ rollout  _rQACheck ""
 		unregisterRedrawViewsCallback gw_DrawTriangleCnt
 		if(cbxToggleStatistics.checked) do registerRedrawViewsCallback gw_DrawTriangleCnt
 		forceCompleteRedraw()
+	)
+	
+	on btnShowMapsInVPT pressed do
+	(		
+		if(checkVray() == false) do return messageBox "Please assing V-Ray renderer!" title: "Warning"
+		
+		for m in getClassInstances VrayMtl where m != undefined and  m.texmap_diffuse != undefined do (
+								
+			tex = case classOf m.texmap_diffuse of (
+				Color_Correction: if(m.texmap_diffuse.map == undefined) then m.texmap_diffuse else m.texmap_diffuse.map
+				default: m.texmap_diffuse
+			)
+			
+			showTextureMap m tex on
+		)
 	)
 	
 	on btnCheckIsolated pressed do
